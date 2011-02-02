@@ -58,6 +58,7 @@ public class PoolableBackendFactory implements PoolableObjectFactory {
 
 	public boolean validateObject(final Object obj) {
 		if (obj instanceof Backend) {
+			log.debug("Validating backend...");
 			Backend backend = (Backend) obj;
 			boolean connected = backend.isConnected();
 

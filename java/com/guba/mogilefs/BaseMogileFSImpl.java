@@ -112,11 +112,14 @@ public abstract class BaseMogileFSImpl implements MogileFS {
 	protected abstract ObjectPool buildBackendPool();
 
 	protected ObjectPool getBackendPool() {
+		log.debug("Getting a backend pool...");
 		if (cachedBackendPool != null) {
 			return cachedBackendPool;
 		}
 
+		log.debug("No backend pool found, making a new one.");
 		cachedBackendPool = buildBackendPool();
+		log.debug("Created new backend pool.");
 
 		return cachedBackendPool;
 	}
@@ -428,6 +431,7 @@ public abstract class BaseMogileFSImpl implements MogileFS {
 	 * @return
 	 */
 	public URLConnection getURLConnection(String key) throws NoTrackersException, TrackerCommunicationException, StorageCommunicationException {
+		log.debug("Getting paths...");
 		// pull in the paths for this file
 		String paths[] = getPaths(key, false);
 	
@@ -512,6 +516,7 @@ public abstract class BaseMogileFSImpl implements MogileFS {
 	 * Something went wrong - so wait a little while before continuing
 	 */
 	private void retrySleep() {
+		log.debug("about to retrySleep for " + retrySleepTime + "ms");
 		if (retrySleepTime > 0) {
 			try { Thread.sleep(retrySleepTime); } catch (Exception e) {}
 		}
@@ -599,7 +604,9 @@ public abstract class BaseMogileFSImpl implements MogileFS {
 
 		while ((maxRetries == -1) || (attempt++ <= maxRetries)) {
 			try {
+				log.debug("Borrowing a backend...");
 				backend = borrowBackend();
+				log.debug("Borrowed a backend.");
 
 				Map<String,String> response = backend.doRequest("get_paths", new String[] { "domain",
 						domain, "key", key, "noverify", (noverify ? "1" : "0") });
@@ -709,17 +716,21 @@ public abstract class BaseMogileFSImpl implements MogileFS {
 
 	Backend borrowBackend() throws NoTrackersException {
 		try {
+			log.debug("Getting a backend pool to borrow from.");
 			ObjectPool backendPool = getBackendPool();
+			log.debug("Got a backend pool to borrow from.");
 
-			if (log.isDebugEnabled()) {
-				log.debug("getting backend (active: " + backendPool.getNumActive() + ", idle: " + backendPool.getNumIdle() + ")");
-			}
+//			if (log.isDebugEnabled()) {
+//				log.debug("getting backend (active: " + backendPool.getNumActive() + ", idle: " + backendPool.getNumIdle() + ")");
+//			}
+			log.debug("getting backend without checking counts");
 
 			final Backend backend = (Backend) backendPool.borrowObject();
 
-			if (log.isDebugEnabled()) {
-				log.debug("got backend (active: " + backendPool.getNumActive() + ", idle: " + backendPool.getNumIdle() + ")");
-			}
+//			if (log.isDebugEnabled()) {
+//				log.debug("got backend (active: " + backendPool.getNumActive() + ", idle: " + backendPool.getNumIdle() + ")");
+//			}
+			log.debug("got backend without checking counts");
 
 			return backend;
 
@@ -733,15 +744,17 @@ public abstract class BaseMogileFSImpl implements MogileFS {
 		try {
 			ObjectPool backendPool = getBackendPool();
 
-			if (log.isDebugEnabled()) {
-				log.debug("returning backend (active: " + backendPool.getNumActive() + ", idle: " + backendPool.getNumIdle() + ")");
-			}
+//			if (log.isDebugEnabled()) {
+//				log.debug("returning backend (active: " + backendPool.getNumActive() + ", idle: " + backendPool.getNumIdle() + ")");
+//			}
+			log.debug("returning backend without checking counts");
 
 			backendPool.returnObject(backend);
 
-			if (log.isDebugEnabled()) {
-				log.debug("returned backend (active: " + backendPool.getNumActive() + ", idle: " + backendPool.getNumIdle() + ")");
-			}
+//			if (log.isDebugEnabled()) {
+//				log.debug("returned backend (active: " + backendPool.getNumActive() + ", idle: " + backendPool.getNumIdle() + ")");
+//			}
+			log.debug("returned backend without checking counts");
 
 		} catch (Exception e) {
 			// I think we can ignore this.
@@ -753,15 +766,17 @@ public abstract class BaseMogileFSImpl implements MogileFS {
 		try {
 			ObjectPool backendPool = getBackendPool();
 
-			if (log.isDebugEnabled()) {
-				log.debug("invalidating backend (active: " + backendPool.getNumActive() + ", idle: " + backendPool.getNumIdle() + ")");
-			}
+//			if (log.isDebugEnabled()) {
+//				log.debug("invalidating backend (active: " + backendPool.getNumActive() + ", idle: " + backendPool.getNumIdle() + ")");
+//			}
+			log.debug("invalidating backend without checking counts");
 
 			backendPool.invalidateObject(backend);
 
-			if (log.isDebugEnabled()) {
-				log.debug("invalidated backend (active: " + backendPool.getNumActive() + ", idle: " + backendPool.getNumIdle() + ")");
-			}
+//			if (log.isDebugEnabled()) {
+//				log.debug("invalidated backend (active: " + backendPool.getNumActive() + ", idle: " + backendPool.getNumIdle() + ")");
+//			}
+			log.debug("invalidated backend without checking counts");
 
 		} catch (Exception e) {
 			// I think we can ignore this

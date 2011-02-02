@@ -7,6 +7,8 @@ package com.guba.mogilefs;
 
 import org.apache.commons.pool.ObjectPool;
 import org.apache.commons.pool.impl.GenericObjectPool;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 /**
  * MogileFS implementation that keeps a pool of tracker connections
@@ -15,6 +17,7 @@ import org.apache.commons.pool.impl.GenericObjectPool;
  * @author eml@guba.com
  */
 public class PooledMogileFSImpl extends BaseMogileFSImpl {
+	private static final Logger log = LoggerFactory.getLogger(PooledMogileFSImpl.class);
 
 	private int maxTrackerConnections;
 	private int maxIdleConnections;
@@ -65,10 +68,13 @@ public class PooledMogileFSImpl extends BaseMogileFSImpl {
 	@Override
 	protected ObjectPool buildBackendPool() {
 		// create a new pool of Backend objects
+		if (log.isDebugEnabled()) {
+			log.debug("creating backend pool (max connections: " + maxTrackerConnections + ", pool timeout: " + trackerPoolTimeout + ")");
+		}
 		return new GenericObjectPool(new PoolableBackendFactory(trackers, trackerConnectTimeout, trackerReadTimeout),
 				maxTrackerConnections,
-				GenericObjectPool.WHEN_EXHAUSTED_BLOCK,
-				trackerPoolTimeout,  // wait for up to 60 seconds if we run out
+				GenericObjectPool.WHEN_EXHAUSTED_FAIL,
+				trackerPoolTimeout,  // This is not used here.
 				maxIdleConnections,
 				1,     // minIdle (** 1? **)
 				true, // test on borrow
